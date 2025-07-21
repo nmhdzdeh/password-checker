@@ -1,3 +1,4 @@
+use clap::Parser;
 use rpassword::read_password;
 use std::io::{self, Write};
 
@@ -41,11 +42,23 @@ fn check_password(password: &str) -> PasswordStrength {
     }
 }
 
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Cli {
+    #[arg(short, long)]
+    password: Option<String>,
+}
 fn main() {
-    print!("Please enter your password: ");
-    io::stdout().flush().unwrap();
+    let cli = Cli::parse();
 
-    let password = read_password().expect("Fail to read password");
+    let password = match cli.password {
+        Some(p) => p,
+        None => {
+            print!("Please enter your password: ");
+            io::stdout().flush().unwrap();
+            read_password().expect("Fail to read password")
+        }
+    };
 
     let strength = check_password(&password);
 
