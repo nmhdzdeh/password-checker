@@ -1,3 +1,4 @@
+#[derive(Debug)]
 enum PasswordStrength {
     TooShort,
     Weak,
@@ -38,5 +39,6 @@ fn check_password(password: &str) -> PasswordStrength {
 }
 
 fn main() {
-    println!("Hello, world!");
+    let password = "Abc123!";
+    println!("{:?}", check_password(password));
 }
