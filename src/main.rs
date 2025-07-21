@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum PasswordStrength {
     TooShort,
     Weak,
@@ -41,4 +41,35 @@ fn check_password(password: &str) -> PasswordStrength {
 fn main() {
     let password = "Abc123!";
     println!("{:?}", check_password(password));
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_too_short() {
+        assert_eq!(check_password("Ab1!"), PasswordStrength::TooShort);
+    }
+
+    #[test]
+    fn test_weak() {
+        assert_eq!(check_password("abcdefgh"), PasswordStrength::Weak); 
+    }
+
+    #[test]
+    fn test_medium_two_types() {
+        assert_eq!(check_password("abcd1234"), PasswordStrength::Medium); 
+    }
+
+    #[test]
+    fn test_medium_three_types() {
+        assert_eq!(check_password("Abcd1234"), PasswordStrength::Medium); 
+    }
+
+    #[test]
+    fn test_strong() {
+        assert_eq!(check_password("Abcd123!"), PasswordStrength::Strong); 
+    }
 }
