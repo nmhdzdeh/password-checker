@@ -1,3 +1,5 @@
+use std::io::{self, Write};
+
 #[derive(Debug, PartialEq)]
 enum PasswordStrength {
     TooShort,
@@ -39,10 +41,26 @@ fn check_password(password: &str) -> PasswordStrength {
 }
 
 fn main() {
-    let password = "Abc123!";
-    println!("{:?}", check_password(password));
-}
+    print!("Please enter your password: ");
+    io::stdout().flush().unwrap();
 
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Fail to read password");
+    let password = input.trim();
+
+    let strength = check_password(password);
+
+    let message = match strength {
+        PasswordStrength::TooShort => "Password is too short",
+        PasswordStrength::Weak => "Password is weak",
+        PasswordStrength::Medium => "Password is medium",
+        PasswordStrength::Strong => "Password is strong",
+    };
+
+    println!("{}", message);
+}
 
 #[cfg(test)]
 mod tests {
@@ -55,21 +73,21 @@ mod tests {
 
     #[test]
     fn test_weak() {
-        assert_eq!(check_password("abcdefgh"), PasswordStrength::Weak); 
+        assert_eq!(check_password("abcdefgh"), PasswordStrength::Weak);
     }
 
     #[test]
     fn test_medium_two_types() {
-        assert_eq!(check_password("abcd1234"), PasswordStrength::Medium); 
+        assert_eq!(check_password("abcd1234"), PasswordStrength::Medium);
     }
 
     #[test]
     fn test_medium_three_types() {
-        assert_eq!(check_password("Abcd1234"), PasswordStrength::Medium); 
+        assert_eq!(check_password("Abcd1234"), PasswordStrength::Medium);
     }
 
     #[test]
     fn test_strong() {
-        assert_eq!(check_password("Abcd123!"), PasswordStrength::Strong); 
+        assert_eq!(check_password("Abcd123!"), PasswordStrength::Strong);
     }
 }
