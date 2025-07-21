@@ -1,3 +1,4 @@
+use rpassword::read_password;
 use std::io::{self, Write};
 
 #[derive(Debug, PartialEq)]
@@ -44,13 +45,9 @@ fn main() {
     print!("Please enter your password: ");
     io::stdout().flush().unwrap();
 
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Fail to read password");
-    let password = input.trim();
+    let password = read_password().expect("Fail to read password");
 
-    let strength = check_password(password);
+    let strength = check_password(&password);
 
     let message = match strength {
         PasswordStrength::TooShort => "Password is too short",
