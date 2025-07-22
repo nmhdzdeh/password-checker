@@ -1,82 +1,17 @@
-use clap::{Arg, Command};
-use colored::*;
 use rpassword::read_password;
 use std::io::{self, Write};
 
-#[derive(Debug, PartialEq)]
-enum PasswordStrength {
-    TooShort,
-    Weak,
-    Medium,
-    Strong,
-}
+mod password;
+mod cli;
+mod ui;
 
-fn check_password(password: &str) -> PasswordStrength {
-    if password.len() < 8 {
-        return PasswordStrength::TooShort;
-    }
-
-    let mut has_lower = false;
-    let mut has_upper = false;
-    let mut has_digit = false;
-    let mut has_symbol = false;
-
-    for ch in password.chars() {
-        if ch.is_lowercase() {
-            has_lower = true;
-        } else if ch.is_uppercase() {
-            has_upper = true;
-        } else if ch.is_ascii_digit() {
-            has_digit = true;
-        } else {
-            has_symbol = true;
-        }
-    }
-
-    let types_count = has_lower as u8 + has_upper as u8 + has_digit as u8 + has_symbol as u8;
-
-    match types_count {
-        0 | 1 => PasswordStrength::Weak,
-        2 | 3 => PasswordStrength::Medium,
-        4 => PasswordStrength::Strong,
-        _ => PasswordStrength::Weak,
-    }
-}
-
-fn cli() -> clap::ArgMatches {
-    Command::new("Password Checker")
-        .version("1.0")
-        .about("Checks the strength of a password")
-        .arg(
-            Arg::new("password")
-                .short('p')
-                .long("password")
-                .value_name("PASSWORD")
-                .help("Provide a password directly")
-                .num_args(1),
-        )
-        .get_matches()
-}
-fn main() {
-    let matches = cli();
-    if let Some(pw) = matches.get_one::<String>("password") {
-        handle_password_input(pw);
-    } else {
-        run_interactive_mode();
-    }
-}
+use password::{check_password, PasswordStrength};
+use cli::cli;
+use ui::colored_message_for;
 
 fn handle_password_input(password: &str) {
     let strength = check_password(password);
     println!("Strength: {:?}", strength);
-}
-fn colored_message_for(strength: &PasswordStrength) -> ColoredString {
-    match strength {
-        PasswordStrength::TooShort => "Password is too short".red(),
-        PasswordStrength::Weak => "Password is weak".red(),
-        PasswordStrength::Medium => "Password is medium".yellow(),
-        PasswordStrength::Strong => "Password is strong".green(),
-    }
 }
 
 fn run_interactive_mode() {
@@ -95,6 +30,15 @@ fn run_interactive_mode() {
             }
             _ => break,
         }
+    }
+}
+
+fn main() {
+    let matches = cli();
+    if let Some(pw) = matches.get_one::<String>("password") {
+        handle_password_input(pw);
+    } else {
+        run_interactive_mode();
     }
 }
 
@@ -125,5 +69,20 @@ mod tests {
     #[test]
     fn test_strong() {
         assert_eq!(check_password("Abcd123!"), PasswordStrength::Strong);
+    }
+
+    #[test]
+    fn test_only_symbols() {
+        assert_eq!(check_password("!@#$%^&*"), PasswordStrength::Weak);
+    }
+
+    #[test]
+    fn test_only_uppercase() {
+        assert_eq!(check_password("ABCDEFGH"), PasswordStrength::Weak);
+    }
+
+    #[test]
+    fn test_only_digits() {
+        assert_eq!(check_password("12345678"), PasswordStrength::Weak);
     }
 }
