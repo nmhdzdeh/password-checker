@@ -1,6 +1,6 @@
-use clap::Parser;
 use rpassword::read_password;
 use std::io::{self, Write};
+use clap::{Arg, Command};
 
 #[derive(Debug, PartialEq)]
 enum PasswordStrength {
@@ -42,34 +42,63 @@ fn check_password(password: &str) -> PasswordStrength {
     }
 }
 
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    #[arg(short, long)]
-    password: Option<String>,
+
+
+fn cli() -> clap::ArgMatches {
+    Command::new("Password Checker")
+        .version("1.0")
+        .about("Checks the strength of a password")
+        .arg(
+            Arg::new("password")
+                .short('p')
+                .long("password")
+                .value_name("PASSWORD")
+                .help("Provide a password directly")
+                .num_args(1),
+        )
+        .get_matches()
 }
 fn main() {
-    let cli = Cli::parse();
 
-    let password = match cli.password {
-        Some(p) => p,
-        None => {
-            print!("Please enter your password: ");
-            io::stdout().flush().unwrap();
-            read_password().expect("Fail to read password")
-        }
-    };
+      let matches = cli();
+     if let Some(pw) = matches.get_one::<String>("password") {
+        handle_password_input(pw);
+    } else {
+        run_interactive_mode();
+    }
 
-    let strength = check_password(&password);
+}
 
-    let message = match strength {
+fn handle_password_input(password: &str) {
+    let strength = check_password(password);
+    println!("Strength: {:?}", strength);
+}
+fn message_for(strength: &PasswordStrength) -> &'static str {
+    match strength {
         PasswordStrength::TooShort => "Password is too short",
         PasswordStrength::Weak => "Password is weak",
         PasswordStrength::Medium => "Password is medium",
         PasswordStrength::Strong => "Password is strong",
-    };
+    }
+}
 
-    println!("{}", message);
+fn run_interactive_mode() {
+    loop {
+        print!("Please enter your password: ");
+        io::stdout().flush().unwrap();
+
+        let password = read_password().expect("Failed to read password");
+        let strength = check_password(&password);
+
+        println!("{}", message_for(&strength));
+
+        match strength {
+            PasswordStrength::TooShort | PasswordStrength::Weak => {
+                println!("Please try again.\n");
+            }
+            _ => break,
+        }
+    }
 }
 
 #[cfg(test)]
