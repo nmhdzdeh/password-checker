@@ -1,6 +1,7 @@
+use clap::{Arg, Command};
+use colored::*;
 use rpassword::read_password;
 use std::io::{self, Write};
-use clap::{Arg, Command};
 
 #[derive(Debug, PartialEq)]
 enum PasswordStrength {
@@ -42,8 +43,6 @@ fn check_password(password: &str) -> PasswordStrength {
     }
 }
 
-
-
 fn cli() -> clap::ArgMatches {
     Command::new("Password Checker")
         .version("1.0")
@@ -59,26 +58,24 @@ fn cli() -> clap::ArgMatches {
         .get_matches()
 }
 fn main() {
-
-      let matches = cli();
-     if let Some(pw) = matches.get_one::<String>("password") {
+    let matches = cli();
+    if let Some(pw) = matches.get_one::<String>("password") {
         handle_password_input(pw);
     } else {
         run_interactive_mode();
     }
-
 }
 
 fn handle_password_input(password: &str) {
     let strength = check_password(password);
     println!("Strength: {:?}", strength);
 }
-fn message_for(strength: &PasswordStrength) -> &'static str {
+fn colored_message_for(strength: &PasswordStrength) -> ColoredString {
     match strength {
-        PasswordStrength::TooShort => "Password is too short",
-        PasswordStrength::Weak => "Password is weak",
-        PasswordStrength::Medium => "Password is medium",
-        PasswordStrength::Strong => "Password is strong",
+        PasswordStrength::TooShort => "Password is too short".red(),
+        PasswordStrength::Weak => "Password is weak".red(),
+        PasswordStrength::Medium => "Password is medium".yellow(),
+        PasswordStrength::Strong => "Password is strong".green(),
     }
 }
 
@@ -90,7 +87,7 @@ fn run_interactive_mode() {
         let password = read_password().expect("Failed to read password");
         let strength = check_password(&password);
 
-        println!("{}", message_for(&strength));
+        println!("{}", colored_message_for(&strength));
 
         match strength {
             PasswordStrength::TooShort | PasswordStrength::Weak => {
