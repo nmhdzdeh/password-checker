@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
 colored = "3.0.0"
+rand = {version="0.8.5", features = ["std"] }
 rpassword = "7.4.0"
