@@ -3,14 +3,16 @@ use rpassword::read_password;
 use std::io::{self, Write};
 
 mod cli;
+mod clipboard_utils;
+mod file_utils;
 mod password;
 mod password_generator;
 mod ui;
-mod clipboard_utils;
 
+use clipboard_utils::copy_to_clipboard;
+use file_utils::save_password_to_file;
 use password::{PasswordStrength, check_password};
 use ui::colored_message_for;
-use clipboard_utils::copy_to_clipboard;
 
 fn handle_password_input(password: &str) {
     let strength = check_password(password);
@@ -39,7 +41,7 @@ fn run_interactive_mode() {
 fn main() {
     let args = cli::Cli::parse();
 
-     if args.generate {
+    let password = if args.generate {
         let password = password_generator::generate_password(args.length);
         println!("🔐 Generated password: {}", password);
 
@@ -50,11 +52,8 @@ fn main() {
                 println!("📋 Password copied to clipboard!");
             }
         }
-
-        return;
-    }
-
-    if let Some(pass) = args.password {
+        password
+    } else if let Some(pass) = args.password.clone() {
         handle_password_input(&pass);
 
         if args.copy {
@@ -64,8 +63,17 @@ fn main() {
                 println!("📋 Password copied to clipboard!");
             }
         }
+        pass
     } else {
         run_interactive_mode();
+        return;
+    };
+
+    if let Some(file_path) = args.save_to_file {
+        match save_password_to_file(&file_path, &password) {
+            Ok(_) => println!("💾 Password saved to file: {}", file_path),
+            Err(e) => eprintln!("❌ Failed to save password to file: {}", e),
+        }
     }
 }
 

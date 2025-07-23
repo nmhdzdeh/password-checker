@@ -23,4 +23,8 @@ pub struct Cli {
     /// Length of the generated password
     #[arg(short, long, default_value_t = 16)]
     pub length: usize,
+
+    /// Save password to a file
+    #[arg(long)]
+    pub save_to_file: Option<String>,
 }
