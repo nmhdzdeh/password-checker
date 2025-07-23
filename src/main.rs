@@ -6,9 +6,11 @@ mod cli;
 mod password;
 mod password_generator;
 mod ui;
+mod clipboard_utils;
 
 use password::{PasswordStrength, check_password};
 use ui::colored_message_for;
+use clipboard_utils::copy_to_clipboard;
 
 fn handle_password_input(password: &str) {
     let strength = check_password(password);
@@ -37,14 +39,31 @@ fn run_interactive_mode() {
 fn main() {
     let args = cli::Cli::parse();
 
-    if args.generate {
+     if args.generate {
         let password = password_generator::generate_password(args.length);
         println!("🔐 Generated password: {}", password);
+
+        if args.copy {
+            if let Err(e) = copy_to_clipboard(&password) {
+                eprintln!("❌ Failed to copy to clipboard: {}", e);
+            } else {
+                println!("📋 Password copied to clipboard!");
+            }
+        }
+
         return;
     }
-    
+
     if let Some(pass) = args.password {
         handle_password_input(&pass);
+
+        if args.copy {
+            if let Err(e) = copy_to_clipboard(&pass) {
+                eprintln!("❌ Failed to copy to clipboard: {}", e);
+            } else {
+                println!("📋 Password copied to clipboard!");
+            }
+        }
     } else {
         run_interactive_mode();
     }

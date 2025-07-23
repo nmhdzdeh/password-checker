@@ -16,6 +16,10 @@ pub struct Cli {
     #[arg(short, long)]
     pub generate: bool,
 
+    /// Copy generated password to clipboard
+    #[arg(long)]
+    pub copy: bool,
+
     /// Length of the generated password
     #[arg(short, long, default_value_t = 16)]
     pub length: usize,
