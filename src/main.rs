@@ -1,3 +1,4 @@
+use clap::Parser;
 use rpassword::read_password;
 use std::io::{self, Write};
 
@@ -6,7 +7,6 @@ mod password;
 mod password_generator;
 mod ui;
 
-use cli::cli;
 use password::{PasswordStrength, check_password};
 use ui::colored_message_for;
 
@@ -35,20 +35,16 @@ fn run_interactive_mode() {
 }
 
 fn main() {
-    let matches = cli();
-     if matches.get_flag("generate") {
-        let length = matches
-            .get_one::<String>("length")
-            .unwrap()
-            .parse::<usize>()
-            .unwrap_or(16);
+    let args = cli::Cli::parse();
 
-        let password = password_generator::generate_password(length);
+    if args.generate {
+        let password = password_generator::generate_password(args.length);
         println!("🔐 Generated password: {}", password);
         return;
     }
-    if let Some(pw) = matches.get_one::<String>("password") {
-        handle_password_input(pw);
+    
+    if let Some(pass) = args.password {
+        handle_password_input(&pass);
     } else {
         run_interactive_mode();
     }
